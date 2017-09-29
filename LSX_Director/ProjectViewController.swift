@@ -13,6 +13,7 @@ class ProjectViewController: UIViewController {
     @IBOutlet weak var uiCollectionView: UICollectionView!
     var project: Project?
     var takes: [Int:Take]?
+    var takeGroups: [String:[Take]] = [String:[Take]]()
     
     let thumbCache = NSCache<NSString, UIImage>()
 
@@ -126,7 +127,47 @@ extension ProjectViewController: UICollectionViewDataSource {
 extension ProjectViewController: DataBaseTakesProtocol {
     func takesInfoRetrieved(takes: [Int:Take]) {
         self.takes = takes
-        print (takes.count)
+        
+        groupTakes(takes)
+        
         self.uiCollectionView.reloadData()
     }
+    
+    func groupTakes(_ takes: [Int:Take]) {
+        var groups: [String:[Take]] = [String:[Take]]()
+        let keys = takes.keys
+        for takeId in keys {
+            if let take = takes[takeId] {
+                if let name = take.name {
+                    // Upper_Lid_Raise-1
+                    let index = name.index(name.endIndex, offsetBy: -2)
+                    let character = name[index]
+                    if character == "-" {
+                        let groupName = String(name[name.startIndex...name.index(name.endIndex, offsetBy: -3)])
+                        if groups[groupName] != nil {
+                            groups[groupName]?.append(take)
+                        } else {
+                            groups[groupName] = [take]
+                        }
+                    }
+                }
+            }
+        }
+        
+        self.takeGroups = groups
+        print (groups.keys)
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
