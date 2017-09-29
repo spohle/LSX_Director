@@ -33,6 +33,7 @@ class Take: NSObject {
     var neutralFrame: Int?
     var flashFrame: Int?
     var chosen: Bool?
+    var thumbFileName: String?
 }
 
 protocol DataBaseProjectsModelProtocol: class {
@@ -105,6 +106,9 @@ class DataBaseTakesModel: NSObject, URLSessionDataDelegate {
             if let chosen = element["chosen"] as? String {
                 take.chosen = Bool(chosen)
             }
+            if let path = element["filename"] as? String {
+                take.thumbFileName = path
+            }
             
             takes[take.id!] = take
         }
@@ -160,43 +164,38 @@ class DataBaseProjectsModel: NSObject, URLSessionDataDelegate {
             if let projectId = element["project_id"] as? String {
                 project.id = Int(projectId)
             }
-            if let projectName = element["project_name"] as? String {
+            if let projectName = element["name"] as? String {
                 project.name = projectName
             }
             if let exportPath = element["export_path"] as? String {
                 project.path = exportPath
             }
-            if let day = element["day"] as? String {
-                project.day = day
-            }
             if let studio = element["studio"] as? String {
                 project.studio = studio
             }
-            
-            if let takeId = element["take_id"] as? String {
+            if let takeId = element["neutral_take_id"] as? String {
                 neutralTake.id = Int(takeId)
+            }            
+            if let thumbPath = element["thumb_filename"] as? String {
+                neutralTake.thumbFileName = thumbPath
             }
-            if let takeName = element["take_name"] as? String {
-                neutralTake.name = takeName
-            }
-            if let canon = element["canon_shot"] as? String {
-                neutralTake.canonShot = canon
-            }
-            if let neutral = element["neutral_frame"] as? String? {
-                neutralTake.neutralFrame = Int(neutral!)
-            }
-            if let flash = element["flash_frame"] as? String {
-                neutralTake.flashFrame = Int(flash)
-            }
-            if let chosen = element["chosen"] as? String {
-                neutralTake.chosen = Bool(chosen)
-            }
-            if let cName = element["custom_name"] as? String {
-                neutralTake.customName = cName
-            }
-            if let lsName = element["ls_shot_name"] as? String {
-                neutralTake.lsShotName = lsName
-            }
+            
+//            print (project.name, project.neutralTake!)
+//            if let neutral = element["neutral_frame"] as? String? {
+//                neutralTake.neutralFrame = Int(neutral!)
+//            }
+//            if let flash = element["flash_frame"] as? String {
+//                neutralTake.flashFrame = Int(flash)
+//            }
+//            if let chosen = element["chosen"] as? String {
+//                neutralTake.chosen = Bool(chosen)
+//            }
+//            if let cName = element["custom_name"] as? String {
+//                neutralTake.customName = cName
+//            }
+//            if let lsName = element["ls_shot_name"] as? String {
+//                neutralTake.lsShotName = lsName
+//            }
             
             projects[project.id!] = project
         }

@@ -13,6 +13,7 @@ class ViewController: UIViewController {
     var projects = [Int:Project]()
     let thumbCache = NSCache<NSString, UIImage>()
     let dataBaseModel = DataBaseProjectsModel()
+    let indicator = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.whiteLarge)
     
     @IBOutlet weak var uiProjectsTable: UITableView!
     
@@ -22,6 +23,11 @@ class ViewController: UIViewController {
         uiProjectsTable.dataSource = self
         uiProjectsTable.delegate = self
         uiProjectsTable.backgroundColor = UIColor.darkGray
+        
+        indicator.center = view.center
+        indicator.hidesWhenStopped = true
+        indicator.startAnimating()
+        view.addSubview(indicator)
         
         dataBaseModel.delegate = self
         dataBaseModel.getProjects()
@@ -36,6 +42,7 @@ class ViewController: UIViewController {
 
 extension ViewController: DataBaseProjectsModelProtocol {
     func projectsInfoRetrieved(projects: [Int : Project]) {
+        indicator.stopAnimating()
         self.projects = projects
         self.uiProjectsTable.reloadData()
     }
@@ -99,26 +106,25 @@ extension ViewController: UITableViewDataSource {
     fileprivate func setThumbNail(_ project: Project, _ cell: ProjectTableCell) {
         // http://lightstage.activision.com/thumb_images/2017_09_20_C_OLSON/236661/Shot_2260/2017_09_20_C_OLSON_Shot_2260_DX08_256.jpg
         
-        if let projectName = project.name,
-            let take = project.neutralTake,
-            let canon = take.canonShot,
-            let takeId = take.id {
+        if let projectName = project.name, let take = project.neutralTake {
             
-            let basePath = "http://lightstage.activision.com/thumb_images"
-            let projectPath = "\(basePath)/\(projectName)"
-            let takePath = "\(projectPath)/\(takeId)"
-            let canonShot = String(format: "Shot_%04d", Int(canon)!)
-            let thumbNailPath = "\(takePath)/\(canonShot)/\(projectName)_\(canonShot)_DX08_256.jpg"
-            
-            
-            if let cachedVersion = thumbCache.object(forKey: NSString(string: thumbNailPath)) {
-                cell.uiThumbNail.image = cachedVersion
-            } else {
-                if let data = getThumbData(thumbNailPath) {
-                    let image = UIImage(data: data)
-                    thumbCache.setObject(image!, forKey: NSString(string: thumbNailPath))
-                    cell.uiThumbNail.image = image
+            if let path = take.thumbFileName {
+                let basePath = "http://lightstage.activision.com/thumb_images"
+                let projectPath = "\(basePath)/\(projectName)"
+                let thumbNailPath = "\(projectPath)/\(path)"
+                
+    
+                if let cachedVersion = thumbCache.object(forKey: NSString(string: thumbNailPath)) {
+                    cell.uiThumbNail.image = cachedVersion
+                } else {
+                    if let data = getThumbData(thumbNailPath) {
+                        let image = UIImage(data: data)
+                        thumbCache.setObject(image!, forKey: NSString(string: thumbNailPath))
+                        cell.uiThumbNail.image = image
+                    }
                 }
+            } else {
+                // TODO: default thumbnail image
             }
         }
     }
