@@ -10,18 +10,20 @@ import UIKit
 
 class ProjectViewController: UIViewController {
 
-    @IBOutlet weak var uiCollectionView: UICollectionView!
     var project: Project?
     var takes: [Int:Take]?
-    var takeGroups: [String:[Take]] = [String:[Take]]()
-    
+    var takeGroupsDict: [String:[Take]] = [String:[Take]]()
+    var takeGroups: [String] = [String]()
     let thumbCache = NSCache<NSString, UIImage>()
+    
+    var storedOffsets = [Int: CGFloat]()
 
+    @IBOutlet weak var uiTakesTable: UITableView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        uiCollectionView.dataSource = self
-        uiCollectionView.delegate = self
+        uiTakesTable.dataSource = self
         
         let takesModel = DataBaseTakesModel()
         takesModel.delegate = self
@@ -35,82 +37,34 @@ class ProjectViewController: UIViewController {
     }
 }
 
-extension ProjectViewController: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        // Make sure that the number of items is worth the computing effort.
-        guard let flowLayout = collectionViewLayout as? UICollectionViewFlowLayout,
-            let dataSourceCount = collectionView.dataSource?.collectionView(collectionView, numberOfItemsInSection: section),
-            dataSourceCount > 0 else {
-                return .zero
+extension ProjectViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return self.takeGroupsDict.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "TakeGroupCell", for: indexPath) as! TakeGroupCell
+    
+        let groupName = self.takeGroups[indexPath.row]
+        
+        print (indexPath.row, groupName)
+        if let takes = self.takeGroupsDict[groupName] {
+            cell.takes = takes
+            cell.setCollectionViewData(withDataSource: self, withDelegate: self, forRow: indexPath.row)
         }
         
-        
-        let cellCount = CGFloat(dataSourceCount)
-        let itemSpacing = flowLayout.minimumInteritemSpacing
-        let cellWidth = flowLayout.itemSize.width + itemSpacing
-        var insets = flowLayout.sectionInset
-        
-        
-        // Make sure to remove the last item spacing or it will
-        // miscalculate the actual total width.
-        let totalCellWidth = (cellWidth * cellCount) - itemSpacing
-        let contentWidth = collectionView.frame.size.width - collectionView.contentInset.left - collectionView.contentInset.right
-        
-        
-        // If the number of cells that exist take up less room than the
-        // collection view width, then center the content with the appropriate insets.
-        // Otherwise return the default layout inset.
-        guard totalCellWidth < contentWidth else {
-            return insets
-        }
-        
-        
-        // Calculate the right amount of padding to center the cells.
-        let padding = (contentWidth - totalCellWidth) / 2.0
-        insets.left = padding
-        insets.right = padding
-        return insets
+        return cell
     }
 }
 
 extension ProjectViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if let takes = self.takes {
+        let groupName = self.takeGroups[collectionView.tag]
+        if let takes = self.takeGroupsDict[groupName] {
             return takes.count
         } else {
             return 0
         }
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "takeCell", for: indexPath) as! TakeCell
-        
-        if let takes = takes {
-            let key = takes.keys.sorted()[indexPath.row]
-            if let take = takes[key] {
-                // http://lightstage.activision.com/thumb_images/2017_09_29_J_BERTI/237571/Shot_0696/2017_09_29_J_BERTI_Shot_0696_DX08_256.jpg
-                let basePath = "http://lightstage.activision.com/thumb_images"
-                let projectPath = "\(basePath)/\(project!.name!)"
-                let takePath = "\(projectPath)/\(take.id!)"
-                let canonShot = String(format: "Shot_%04d", Int(take.canonShot!)!)
-                let thumbNailPath = "\(takePath)/\(canonShot)/\(project!.name!)_\(canonShot)_DX08_full.jpg"
-                
-                cell.uiTakeName.text = take.name
-                
-                if let cachedVersion = thumbCache.object(forKey: NSString(string: thumbNailPath)) {
-                    cell.uiImageView.image = cachedVersion
-                } else {
-                    if let data = getThumbData(thumbNailPath) {
-                        let image = UIImage(data: data)
-                        thumbCache.setObject(image!, forKey: NSString(string: thumbNailPath))
-                        cell.uiImageView.image = image
-                    }
-                }
-            }
-        }
-        
-        
-        return cell
     }
     
     func getThumbData(_ path:String) -> Data? {
@@ -122,40 +76,109 @@ extension ProjectViewController: UICollectionViewDataSource {
             return nil
         }
     }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TakeCell", for: indexPath) as! TakeCell
+        
+        let groupName = self.takeGroups[collectionView.tag]
+        if let takes = self.takeGroupsDict[groupName] {
+            let sortedTakes = sortTakes(takes)
+            let take = sortedTakes[indexPath.item]
+            cell.uiTakeName.text = take.name!
+            
+            // http://lightstage.activision.com/thumb_images/2017_09_29_J_BERTI/237571/Shot_0696/2017_09_29_J_BERTI_Shot_0696_DX08_256.jpg
+            let basePath = "http://lightstage.activision.com/thumb_images"
+            let projectPath = "\(basePath)/\(project!.name!)"
+            let takePath = "\(projectPath)/\(take.id!)"
+            let canonShot = String(format: "Shot_%04d", Int(take.canonShot!)!)
+            let thumbNailPath = "\(takePath)/\(canonShot)/\(project!.name!)_\(canonShot)_DX08_full.jpg"
+
+            if let cachedVersion = thumbCache.object(forKey: NSString(string: thumbNailPath)) {
+                cell.uiTakeThumbNail.image = cachedVersion
+            } else {
+                if let data = getThumbData(thumbNailPath) {
+                    let image = UIImage(data: data)
+                    thumbCache.setObject(image!, forKey: NSString(string: thumbNailPath))
+                    cell.uiTakeThumbNail.image = image
+                }
+            }
+        }
+        
+        return cell
+    }
+    
+    func sortTakes(_ takes: [Take]) -> [Take] {
+        var output:[Take] = [Take]()
+        var takeIds = [Int:Take]()
+        for take in takes {
+            takeIds[take.id!] = take
+        }
+        
+        for key in takeIds.keys.sorted() {
+            output.append(takeIds[key]!)
+        }
+        
+        return output
+    }
+}
+
+extension ProjectViewController: UICollectionViewDelegate {
+    
+}
+
+extension ProjectViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        guard let takesGroupCell = cell as? TakeGroupCell else { return }
+        
+        takesGroupCell.collectionViewOffset = self.storedOffsets[indexPath.row] ?? 0
+        
+        let groupName = self.takeGroups[indexPath.row]
+        if let takes = self.takeGroupsDict[groupName] {
+            takesGroupCell.takes = takes
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        guard let takesGroupCell = cell as? TakeGroupCell else { return }
+        storedOffsets[indexPath.row] = takesGroupCell.collectionViewOffset
+    }
 }
 
 extension ProjectViewController: DataBaseTakesProtocol {
     func takesInfoRetrieved(takes: [Int:Take]) {
         self.takes = takes
-        
         groupTakes(takes)
-        
-        self.uiCollectionView.reloadData()
+        self.uiTakesTable.reloadData()
     }
     
+    /**
+         Takes a dict of takes and splits them into their groupings
+         @param takes the dictionary with the takes in
+    */
     func groupTakes(_ takes: [Int:Take]) {
-        var groups: [String:[Take]] = [String:[Take]]()
-        let keys = takes.keys
-        for takeId in keys {
+        var groups = [String:[Take]]()
+        
+        for takeId in takes.keys.sorted() {
             if let take = takes[takeId] {
                 if let name = take.name {
-                    // Upper_Lid_Raise-1
+                    // EXAMPLE : Upper_Lid_Raise-1
                     let index = name.index(name.endIndex, offsetBy: -2)
+                    
                     let character = name[index]
                     if character == "-" {
                         let groupName = String(name[name.startIndex...name.index(name.endIndex, offsetBy: -3)])
                         if groups[groupName] != nil {
-                            groups[groupName]?.append(take)
+                            groups[groupName]!.append(take)
                         } else {
                             groups[groupName] = [take]
+                            self.takeGroups.append(groupName)
                         }
                     }
                 }
             }
         }
         
-        self.takeGroups = groups
-        print (groups.keys)
+        self.takeGroupsDict = groups
     }
 }
 

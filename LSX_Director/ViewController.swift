@@ -8,12 +8,21 @@
 
 import UIKit
 
+enum ScrollDirection {
+    case none
+    case up
+    case down
+}
+
 class ViewController: UIViewController {
     
     var projects = [Int:Project]()
     let thumbCache = NSCache<NSString, UIImage>()
     let dataBaseModel = DataBaseProjectsModel()
     let indicator = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.whiteLarge)
+    
+    var lastContentOffset = CGFloat(0)
+    var scrollDirection = ScrollDirection.none
     
     @IBOutlet weak var uiProjectsTable: UITableView!
     
@@ -51,7 +60,14 @@ extension ViewController: DataBaseProjectsModelProtocol {
 // MARK: TableView Delegate methods
 extension ViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        let transform = CATransform3DTranslate(CATransform3DIdentity, 50, 0, 0)
+        var offset = CGFloat(0)
+        if self.scrollDirection == ScrollDirection.down {
+            offset = 50
+        } else if self.scrollDirection == ScrollDirection.up {
+            offset = -50
+        }
+        
+        let transform = CATransform3DTranslate(CATransform3DIdentity, 0, offset, 0)
         cell.layer.transform = transform
         
         UIView.animate(withDuration: 1.0) {
@@ -71,6 +87,17 @@ extension ViewController: UITableViewDelegate {
                 }
             }
         }
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let currentOffset = scrollView.contentOffset
+        if currentOffset.y > self.lastContentOffset {
+            self.scrollDirection = ScrollDirection.down
+        } else {
+            self.scrollDirection = ScrollDirection.up
+        }
+        
+        self.lastContentOffset = currentOffset.y
     }
 }
 
