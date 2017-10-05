@@ -10,8 +10,11 @@ import UIKit
 
 class ImageViewController: UIViewController {
     
-    var thumbNailPath:String?
+    var thumbNailPaths:[String]?
+    var takeNames:[String]?
+    var takeIndex:Int = 0
     var image:UIImage?
+    var takeName:String = "No Name"
     
     let uiFxView:UIVisualEffectView = {
         let w = UIVisualEffectView()
@@ -39,17 +42,62 @@ class ImageViewController: UIViewController {
         return w
     }()
     
+    let uiButtonPrev:UIButton = {
+        let w = UIButton()
+        
+        let image = UIImage(named: "prev")
+        w.setImage(image, for: .normal)
+        
+        w.translatesAutoresizingMaskIntoConstraints = false
+        return w
+    }()
+    
+    let uiButtonNext:UIButton = {
+        let w = UIButton()
+        
+        let image = UIImage(named: "next")
+        w.setImage(image, for: .normal)
+        
+        w.translatesAutoresizingMaskIntoConstraints = false
+        return w
+    }()
+    
+    let uiNameFxView:UIVisualEffectView = {
+        let w = UIVisualEffectView()
+        w.effect = UIBlurEffect(style: UIBlurEffectStyle.extraLight)
+        w.alpha = 0.7
+        
+        w.translatesAutoresizingMaskIntoConstraints = false
+        return w
+    }()
+    
+    let uiNameLabel:UILabel = {
+        let w = UILabel()
+        
+        w.text = "Hello Sven"
+        w.textAlignment = NSTextAlignment.center
+        w.textColor = UIColor.darkGray
+        
+        w.translatesAutoresizingMaskIntoConstraints = false
+        return w
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         self.view.backgroundColor = .clear
         
-        if let path = thumbNailPath {
+        if let paths = thumbNailPaths {
+            let path = paths[takeIndex]
             if let data = getThumbData(path) {
                 self.image = UIImage(data: data)
             }
         } else {
             dismissView()
+        }
+        
+        if let takeNames = takeNames {
+            takeName = takeNames[takeIndex]
         }
         
         setupUI()
@@ -71,6 +119,32 @@ class ImageViewController: UIViewController {
         uiImageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: scalefactor).isActive = true
         uiImageView.image = self.image!
         
+        view.addSubview(uiNameFxView)
+        uiNameFxView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        uiNameFxView.bottomAnchor.constraint(equalTo: uiImageView.bottomAnchor, constant: 0).isActive = true
+        uiNameFxView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: scalefactor*0.89).isActive = true
+        uiNameFxView.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        
+        view.addSubview(uiNameLabel)
+        uiNameLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        uiNameLabel.bottomAnchor.constraint(equalTo: uiImageView.bottomAnchor).isActive = true
+        uiNameLabel.widthAnchor.constraint(equalTo: uiNameFxView.widthAnchor, multiplier: 1.0).isActive = true
+        uiNameLabel.heightAnchor.constraint(equalTo: uiNameFxView.heightAnchor, multiplier: 1.0).isActive = true
+        uiNameLabel.text = takeName
+        
+        view.addSubview(uiButtonPrev)
+        uiButtonPrev.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        uiButtonPrev.rightAnchor.constraint(equalTo: uiImageView.leftAnchor, constant: 25).isActive = true
+        uiButtonPrev.heightAnchor.constraint(equalToConstant: 150).isActive = true
+        uiButtonPrev.widthAnchor.constraint(equalToConstant: 37).isActive = true
+        uiButtonPrev.addTarget(self, action: #selector(getImagePrev), for: .touchUpInside)
+        
+        view.addSubview(uiButtonNext)
+        uiButtonNext.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        uiButtonNext.leftAnchor.constraint(equalTo: uiImageView.rightAnchor, constant: -25).isActive = true
+        uiButtonNext.heightAnchor.constraint(equalToConstant: 150).isActive = true
+        uiButtonNext.widthAnchor.constraint(equalToConstant: 37).isActive = true
+        uiButtonNext.addTarget(self, action: #selector(getImageNext), for: .touchUpInside)
         
         view.addSubview(uiDismissButton)
         uiDismissButton.topAnchor.constraint(equalTo: uiImageView.topAnchor, constant: -35).isActive = true
@@ -78,6 +152,49 @@ class ImageViewController: UIViewController {
         uiDismissButton.widthAnchor.constraint(equalToConstant: 40).isActive = true
         uiDismissButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
         uiDismissButton.addTarget(self, action: #selector(dismissView), for: .touchUpInside)
+        
+        uiSetupButtons()
+    }
+    
+    func uiSetupButtons() {
+        if takeIndex >= (thumbNailPaths?.count)!-1 {
+            uiButtonNext.alpha = 0.0
+        } else {
+            uiButtonNext.alpha = 1.0
+        }
+    
+        if takeIndex == 0 {
+            uiButtonPrev.alpha = 0.0
+        } else {
+            uiButtonPrev.alpha = 1.0
+        }
+    }
+    
+    func setImageForTakeIndex(_ takeIndex:Int) {
+        if let paths = self.thumbNailPaths {
+            let path = paths[takeIndex]
+            if let data = getThumbData(path) {
+                self.image = UIImage(data: data)
+                uiImageView.image = self.image!
+            }
+        }
+        
+        if let takeNames = takeNames {
+            uiNameLabel.text = takeNames[takeIndex]
+        }
+        
+    }
+    
+    @objc func getImagePrev() {
+        takeIndex -= 1
+        setImageForTakeIndex(takeIndex)
+        uiSetupButtons()
+    }
+    
+    @objc func getImageNext() {
+        takeIndex += 1
+        setImageForTakeIndex(takeIndex)
+        uiSetupButtons()
     }
     
     @objc func dismissView() {
