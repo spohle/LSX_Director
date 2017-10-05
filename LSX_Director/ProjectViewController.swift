@@ -150,21 +150,35 @@ extension ProjectViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let groupName = self.takeGroups[collectionView.tag]
         if let takes = self.takeGroupsDict[groupName] {
-            let take = takes[indexPath.item]
+            let thumbNails = getTakesThumbNailPaths(takes: takes)
+            var takeNames:[String] = [String]()
+            for take in takes {
+                takeNames.append(take.name!)
+            }
+                        
+            let imageViewController = ImageViewController()
+            imageViewController.modalTransitionStyle = UIModalTransitionStyle.crossDissolve
+            imageViewController.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
+            imageViewController.thumbNailPaths = thumbNails
+            imageViewController.takeNames = takeNames
+            imageViewController.takeIndex = indexPath.item
+            present(imageViewController, animated: false, completion: nil)
+        }
+    }
+    
+    func getTakesThumbNailPaths(takes:[Take]) -> [String]? {
+        var thumbNails:[String] = [String]()
+        
+        for take in takes {
             let basePath = "http://lightstage.activision.com/thumb_images"
             let projectPath = "\(basePath)/\(self.project!.name!)"
             let takePath = "\(projectPath)/\(take.id!)"
             let canonShot = String(format: "Shot_%04d", Int(take.canonShot!)!)
             let thumbNailPath = "\(takePath)/\(canonShot)/\(project!.name!)_\(canonShot)_DX08_full.jpg"
-            
-            print (thumbNailPath)
-            
-            let imageViewController = ImageViewController()
-            imageViewController.modalTransitionStyle = UIModalTransitionStyle.crossDissolve
-            imageViewController.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
-            imageViewController.thumbNailPath = thumbNailPath
-            present(imageViewController, animated: false, completion: nil)
+            thumbNails.append(thumbNailPath)
         }
+        
+        return thumbNails
     }
 }
 
