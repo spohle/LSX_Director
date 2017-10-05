@@ -48,9 +48,12 @@ class DataBaseTakesModel: NSObject, URLSessionDataDelegate {
     weak var delegate: DataBaseTakesProtocol!
     
     var data = Data()
+    var startTime:CFAbsoluteTime?
     
     func getTakesForProjectID(_ id: Int) {
+        startTime = CFAbsoluteTimeGetCurrent()
         let urlPath = "http://lightstage.activision.com/test/ios_get_project_shots.php?proj_id=\(id)"
+        print ("calling \(urlPath)")
         let url: URL = URL(string: urlPath)!
         let session = URLSession(configuration: URLSessionConfiguration.default)
         
@@ -68,6 +71,11 @@ class DataBaseTakesModel: NSObject, URLSessionDataDelegate {
     
     func parseTakes(_ data: Data) {
         var jsonResults = NSArray()
+        
+        if let startTime = self.startTime {
+            let timeElapsed = Double(CFAbsoluteTimeGetCurrent() - startTime)
+            print ("Got Projects Info in: \(timeElapsed) seconds!")
+        }
         
         do {
             jsonResults = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments) as! NSArray
@@ -124,9 +132,12 @@ class DataBaseProjectsModel: NSObject, URLSessionDataDelegate {
     weak var delegate: DataBaseProjectsModelProtocol!
     
     var data = Data()
+    var startTime:CFAbsoluteTime?
 
     func getProjects() {
+        startTime = CFAbsoluteTimeGetCurrent()
         let urlPath = "http://lightstage.activision.com/test/ios_get_projects.php"
+        print ("calling \(urlPath)")
         let url: URL = URL(string: urlPath)!
         let session = URLSession(configuration: URLSessionConfiguration.default)
         
@@ -143,6 +154,12 @@ class DataBaseProjectsModel: NSObject, URLSessionDataDelegate {
     }
     
     func parseProjects(_ data: Data) {
+        if let startTime = self.startTime {
+            let timeElapsed = Double(CFAbsoluteTimeGetCurrent() - startTime)
+            print ("Got Projects Info in: \(timeElapsed) seconds!")
+        }
+        
+        
         var jsonResults = NSArray()
         
         do {
@@ -150,6 +167,7 @@ class DataBaseProjectsModel: NSObject, URLSessionDataDelegate {
         } catch let error as NSError{
             print (error.localizedDescription)
         }
+        
         
         var element = NSDictionary()
         var projects: [Int:Project] = [Int:Project]()
@@ -179,23 +197,9 @@ class DataBaseProjectsModel: NSObject, URLSessionDataDelegate {
             if let thumbPath = element["thumb_filename"] as? String {
                 neutralTake.thumbFileName = thumbPath
             }
-            
-//            print (project.name, project.neutralTake!)
-//            if let neutral = element["neutral_frame"] as? String? {
-//                neutralTake.neutralFrame = Int(neutral!)
-//            }
-//            if let flash = element["flash_frame"] as? String {
-//                neutralTake.flashFrame = Int(flash)
-//            }
-//            if let chosen = element["chosen"] as? String {
-//                neutralTake.chosen = Bool(chosen)
-//            }
-//            if let cName = element["custom_name"] as? String {
-//                neutralTake.customName = cName
-//            }
-//            if let lsName = element["ls_shot_name"] as? String {
-//                neutralTake.lsShotName = lsName
-//            }
+            if let canonShot = element["neutral_take_canon_shot"] as? String {
+                neutralTake.canonShot = canonShot
+            }
             
             projects[project.id!] = project
         }

@@ -15,13 +15,15 @@ class ProjectViewController: UIViewController {
     var takeGroupsDict: [String:[Take]] = [String:[Take]]()
     var takeGroups: [String] = [String]()
     let thumbCache = NSCache<NSString, UIImage>()
-    
     var storedOffsets = [Int: CGFloat]()
 
     @IBOutlet weak var uiTakesTable: UITableView!
+    @IBOutlet var uiPopUpView: UIView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.animateIn()
         
         uiTakesTable.dataSource = self
         
@@ -35,6 +37,29 @@ class ProjectViewController: UIViewController {
     @IBAction func uiReturnButtonPressed(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
     }
+    
+    func animateIn() {
+        self.view.addSubview(uiPopUpView)
+        uiPopUpView.center = self.view.center
+        
+        uiPopUpView.transform = CGAffineTransform.init(scaleX: 1.3, y: 1.3)
+        uiPopUpView.alpha = 0
+        
+        UIView.animate(withDuration: 0.4) {
+            self.uiPopUpView.alpha = 1.0
+            self.uiPopUpView.transform = CGAffineTransform.identity
+        }
+    }
+    
+    func animateOut() {
+        UIView.animate(withDuration: 0.4, animations: {
+            self.uiPopUpView.alpha = 0.0
+            self.uiPopUpView.transform = CGAffineTransform.init(scaleX: 1.3, y: 1.3)
+        }) { (success) in
+            self.uiPopUpView.removeFromSuperview()
+        }
+        
+    }
 }
 
 extension ProjectViewController: UITableViewDataSource {
@@ -47,7 +72,6 @@ extension ProjectViewController: UITableViewDataSource {
     
         let groupName = self.takeGroups[indexPath.row]
         
-        print (indexPath.row, groupName)
         if let takes = self.takeGroupsDict[groupName] {
             cell.takes = takes
             cell.setCollectionViewData(withDataSource: self, withDelegate: self, forRow: indexPath.row)
@@ -66,17 +90,7 @@ extension ProjectViewController: UICollectionViewDataSource {
             return 0
         }
     }
-    
-    func getThumbData(_ path:String) -> Data? {
-        let thumbUrl = URL(string: path)
-        do {
-            let data = try Data(contentsOf: thumbUrl!)
-            return data
-        } catch {
-            return nil
-        }
-    }
-    
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TakeCell", for: indexPath) as! TakeCell
         
@@ -92,7 +106,7 @@ extension ProjectViewController: UICollectionViewDataSource {
             let takePath = "\(projectPath)/\(take.id!)"
             let canonShot = String(format: "Shot_%04d", Int(take.canonShot!)!)
             let thumbNailPath = "\(takePath)/\(canonShot)/\(project!.name!)_\(canonShot)_DX08_full.jpg"
-
+            
             if let cachedVersion = thumbCache.object(forKey: NSString(string: thumbNailPath)) {
                 cell.uiTakeThumbNail.image = cachedVersion
             } else {
@@ -105,6 +119,16 @@ extension ProjectViewController: UICollectionViewDataSource {
         }
         
         return cell
+    }
+    
+    func getThumbData(_ path:String) -> Data? {
+        let thumbUrl = URL(string: path)
+        do {
+            let data = try Data(contentsOf: thumbUrl!)
+            return data
+        } catch {
+            return nil
+        }
     }
     
     func sortTakes(_ takes: [Take]) -> [Take] {
@@ -123,7 +147,25 @@ extension ProjectViewController: UICollectionViewDataSource {
 }
 
 extension ProjectViewController: UICollectionViewDelegate {
-    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let groupName = self.takeGroups[collectionView.tag]
+        if let takes = self.takeGroupsDict[groupName] {
+            let take = takes[indexPath.item]
+            let basePath = "http://lightstage.activision.com/thumb_images"
+            let projectPath = "\(basePath)/\(self.project!.name!)"
+            let takePath = "\(projectPath)/\(take.id!)"
+            let canonShot = String(format: "Shot_%04d", Int(take.canonShot!)!)
+            let thumbNailPath = "\(takePath)/\(canonShot)/\(project!.name!)_\(canonShot)_DX08_full.jpg"
+            
+            print (thumbNailPath)
+            
+            let imageViewController = ImageViewController()
+            imageViewController.modalTransitionStyle = UIModalTransitionStyle.crossDissolve
+            imageViewController.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
+            imageViewController.thumbNailPath = thumbNailPath
+            present(imageViewController, animated: false, completion: nil)
+        }
+    }
 }
 
 extension ProjectViewController: UITableViewDelegate {
@@ -149,6 +191,8 @@ extension ProjectViewController: DataBaseTakesProtocol {
         self.takes = takes
         groupTakes(takes)
         self.uiTakesTable.reloadData()
+        
+        animateOut()
     }
     
     /**
