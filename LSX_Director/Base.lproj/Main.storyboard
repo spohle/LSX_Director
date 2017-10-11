@@ -7,6 +7,7 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13524"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="Navigation items with more than one left or right bar item" minToolsVersion="7.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -313,25 +314,34 @@
                                 <action selector="uiReturnButtonPressed:" destination="rI1-JS-eAn" id="WlI-ky-wtx"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="RQK-ST-O4j">
-                            <color key="tintColor" red="0.91372549020000005" green="0.91372549020000005" blue="0.91372549020000005" alpha="1" colorSpace="calibratedRGB"/>
-                            <connections>
-                                <action selector="uiRefreshButtonPressed:" destination="rI1-JS-eAn" id="iCT-KM-NJ8"/>
-                            </connections>
-                        </barButtonItem>
+                        <rightBarButtonItems>
+                            <barButtonItem systemItem="refresh" id="RQK-ST-O4j">
+                                <color key="tintColor" red="0.91372549020000005" green="0.91372549020000005" blue="0.91372549020000005" alpha="1" colorSpace="calibratedRGB"/>
+                                <connections>
+                                    <action selector="uiRefreshButtonPressed:" destination="rI1-JS-eAn" id="iCT-KM-NJ8"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem title="Auto Refresh" id="1eD-bT-0Th">
+                                <color key="tintColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <connections>
+                                    <action selector="uiAutoRefreshButtonPressed:" destination="rI1-JS-eAn" id="j56-HC-Kh8"/>
+                                </connections>
+                            </barButtonItem>
+                        </rightBarButtonItems>
                     </navigationItem>
                     <connections>
+                        <outlet property="uiAutoRefreshButton" destination="1eD-bT-0Th" id="k9y-aw-DKQ"/>
                         <outlet property="uiPopUpView" destination="aCq-lu-9eM" id="XKT-dt-BKL"/>
                         <outlet property="uiTakesTable" destination="au0-rA-Jlf" id="lAZ-FD-yAN"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Gl2-xC-Hkh" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <view contentMode="scaleToFill" id="aCq-lu-9eM">
-                    <rect key="frame" x="0.0" y="0.0" width="468" height="144"/>
+                    <rect key="frame" x="0.0" y="0.0" width="468" height="50"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Loading Takes ... Please Wait" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="TNb-CL-bva">
-                            <rect key="frame" x="0.0" y="62" width="468" height="21"/>
+                            <rect key="frame" x="0.0" y="14.5" width="468" height="21"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="21" id="7Qz-gi-wnc"/>
                             </constraints>

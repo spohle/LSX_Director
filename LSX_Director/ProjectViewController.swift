@@ -19,11 +19,12 @@ class ProjectViewController: UIViewController {
     
     @IBOutlet weak var uiTakesTable: UITableView!
     @IBOutlet var uiPopUpView: UIView!
+    @IBOutlet weak var uiAutoRefreshButton: UIBarButtonItem!
     
-    var indicator = NVActivityIndicatorView(frame: CGRect())
     let takesModel = DataBaseTakesModel()
-    
     var firstTime:Bool = true
+    var autoRefresh:Bool = true
+    var dismissed:Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,15 +40,30 @@ class ProjectViewController: UIViewController {
     }
     
     @IBAction func uiReturnButtonPressed(_ sender: Any) {
+        dismissed = true
         self.dismiss(animated: true, completion: nil)
     }
     
     @IBAction func uiRefreshButtonPressed(_ sender: Any) {
-        print ("refreshing")
-        
-        if let project = project{
-            animateIn()
-            takesModel.getTakesForProjectID(project.id!)
+        updateData()
+    }
+    
+    @IBAction func uiAutoRefreshButtonPressed(_ sender: Any) {
+        autoRefresh = !autoRefresh
+        if autoRefresh == true {
+            uiAutoRefreshButton.title = "Auto Refresh"
+            updateData()
+        } else {
+            uiAutoRefreshButton.title = "Manual Refresh"
+        }
+    }
+    
+    func updateData() {
+        if dismissed == false {
+            if let project = project{
+                animateIn()
+                takesModel.getTakesForProjectID(project.id!)
+            }
         }
     }
         
@@ -65,48 +81,24 @@ class ProjectViewController: UIViewController {
     
     func animateIn() {
         self.view.addSubview(uiPopUpView)
-        uiPopUpView.center = self.view.center
         
-        uiPopUpView.transform = CGAffineTransform.init(scaleX: 1.3, y: 1.3)
-        uiPopUpView.alpha = 0
+        uiPopUpView.frame.size.width = self.view.frame.width
+        uiPopUpView.center = self.view.center
+        uiPopUpView.center.y += self.view.frame.height/2.0 - uiPopUpView.frame.height/2.0
+        
+        uiPopUpView.transform = CGAffineTransform.init(translationX: 0, y: CGFloat(uiPopUpView.frame.height))
         
         UIView.animate(withDuration: 0.4) {
-            self.uiPopUpView.alpha = 1.0
             self.uiPopUpView.transform = CGAffineTransform.identity
         }
-        
-        var types = [NVActivityIndicatorType]()
-        types.append(contentsOf: [.blank, .ballPulse, .ballGridPulse, .ballClipRotate,
-                                  .squareSpin, .ballClipRotatePulse, .ballClipRotateMultiple,
-                                  .ballPulseRise, .ballRotate, .cubeTransition, .ballZigZag,
-                                  .ballZigZagDeflect, .ballTrianglePath, .ballScale, .lineScale,
-                                  .lineScaleParty, .ballScaleMultiple, .ballPulseSync, .ballBeat,
-                                  .lineScalePulseOut, .lineScalePulseOutRapid, .ballScaleRipple,
-                                  .ballScaleRippleMultiple, .ballSpinFadeLoader, .lineSpinFadeLoader,
-                                  .triangleSkewSpin, .pacman, .ballGridBeat, .semiCircleSpin,
-                                  .ballRotateChase, .orbit, .audioEqualizer])
-        
-        
-        let size = CGSize(width: uiPopUpView.frame.height/4, height: uiPopUpView.frame.height/4)
-        let origin = CGPoint(x: uiPopUpView.frame.origin.x + (uiPopUpView.frame.size.width/2) - size.width/2.0, y: (uiPopUpView.frame.origin.y + 100))
-        let frame = CGRect(origin: origin, size: size)
-        indicator = NVActivityIndicatorView(frame: frame)
-        
-        let randomNumber = Int(arc4random_uniform(UInt32(types.count)))
-        indicator.type = types[randomNumber]
-        self.view.addSubview(indicator)
-        indicator.startAnimating()
     }
     
     func animateOut() {
         UIView.animate(withDuration: 0.4, animations: {
-            self.uiPopUpView.alpha = 0.0
-            self.uiPopUpView.transform = CGAffineTransform.init(scaleX: 1.3, y: 1.3)
+            self.uiPopUpView.transform = CGAffineTransform.init(translationX: 0, y: CGFloat(self.uiPopUpView.frame.height))
         }) { (success) in
-            self.indicator.stopAnimating()
             self.uiPopUpView.removeFromSuperview()
         }
-        
     }
 }
 
@@ -237,6 +229,7 @@ extension ProjectViewController: UICollectionViewDelegate {
             imageViewController.takeIds = takeIds.reversed()
             imageViewController.takeIndex = indexPath.item
             imageViewController.takeCell = cell
+            self.dismissed = true
             present(imageViewController, animated: false, completion: nil)
         }
     }
@@ -299,6 +292,13 @@ extension ProjectViewController: DataBaseTakesProtocol {
         self.firstTime = false
 
         animateOut()
+        
+        // start timer and recall the data
+        if autoRefresh == true {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10.0, execute: {
+                self.updateData()
+            })
+        }
     }
     
     func takeBestedStatusSet() {
