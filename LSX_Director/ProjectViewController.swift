@@ -16,9 +16,14 @@ class ProjectViewController: UIViewController {
     var takeGroups: [String] = [String]()
     let thumbCache = NSCache<NSString, UIImage>()
     var storedOffsets = [Int: CGFloat]()
-
+    
     @IBOutlet weak var uiTakesTable: UITableView!
     @IBOutlet var uiPopUpView: UIView!
+    
+    var indicator = NVActivityIndicatorView(frame: CGRect())
+    let takesModel = DataBaseTakesModel()
+    
+    var firstTime:Bool = true
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,7 +32,6 @@ class ProjectViewController: UIViewController {
         
         uiTakesTable.dataSource = self
         
-        let takesModel = DataBaseTakesModel()
         takesModel.delegate = self
         if let project = project{
             takesModel.getTakesForProjectID(project.id!)
@@ -36,6 +40,27 @@ class ProjectViewController: UIViewController {
     
     @IBAction func uiReturnButtonPressed(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
+    }
+    
+    @IBAction func uiRefreshButtonPressed(_ sender: Any) {
+        print ("refreshing")
+        
+        if let project = project{
+            animateIn()
+            takesModel.getTakesForProjectID(project.id!)
+        }
+    }
+        
+    func updateBestedStatus(_ takeId:Int, _ status:Bool) {
+        for groupName in self.takeGroupsDict.keys {
+            if takeGroupsDict[groupName] != nil {
+                for take in takeGroupsDict[groupName]! {
+                    if takeId == take.id {
+                        take.chosen = status
+                    }
+                }
+            }
+        }        
     }
     
     func animateIn() {
@@ -49,6 +74,28 @@ class ProjectViewController: UIViewController {
             self.uiPopUpView.alpha = 1.0
             self.uiPopUpView.transform = CGAffineTransform.identity
         }
+        
+        var types = [NVActivityIndicatorType]()
+        types.append(contentsOf: [.blank, .ballPulse, .ballGridPulse, .ballClipRotate,
+                                  .squareSpin, .ballClipRotatePulse, .ballClipRotateMultiple,
+                                  .ballPulseRise, .ballRotate, .cubeTransition, .ballZigZag,
+                                  .ballZigZagDeflect, .ballTrianglePath, .ballScale, .lineScale,
+                                  .lineScaleParty, .ballScaleMultiple, .ballPulseSync, .ballBeat,
+                                  .lineScalePulseOut, .lineScalePulseOutRapid, .ballScaleRipple,
+                                  .ballScaleRippleMultiple, .ballSpinFadeLoader, .lineSpinFadeLoader,
+                                  .triangleSkewSpin, .pacman, .ballGridBeat, .semiCircleSpin,
+                                  .ballRotateChase, .orbit, .audioEqualizer])
+        
+        
+        let size = CGSize(width: uiPopUpView.frame.height/4, height: uiPopUpView.frame.height/4)
+        let origin = CGPoint(x: uiPopUpView.frame.origin.x + (uiPopUpView.frame.size.width/2) - size.width/2.0, y: (uiPopUpView.frame.origin.y + 100))
+        let frame = CGRect(origin: origin, size: size)
+        indicator = NVActivityIndicatorView(frame: frame)
+        
+        let randomNumber = Int(arc4random_uniform(UInt32(types.count)))
+        indicator.type = types[randomNumber]
+        self.view.addSubview(indicator)
+        indicator.startAnimating()
     }
     
     func animateOut() {
@@ -56,6 +103,7 @@ class ProjectViewController: UIViewController {
             self.uiPopUpView.alpha = 0.0
             self.uiPopUpView.transform = CGAffineTransform.init(scaleX: 1.3, y: 1.3)
         }) { (success) in
+            self.indicator.stopAnimating()
             self.uiPopUpView.removeFromSuperview()
         }
         
@@ -69,7 +117,7 @@ extension ProjectViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TakeGroupCell", for: indexPath) as! TakeGroupCell
-    
+        
         let groupName = self.takeGroups[indexPath.row]
         
         if let takes = self.takeGroupsDict[groupName] {
@@ -78,6 +126,14 @@ extension ProjectViewController: UITableViewDataSource {
         }
         
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+        return CGFloat(380.0)
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return CGFloat(380.0)
     }
 }
 
@@ -93,12 +149,19 @@ extension ProjectViewController: UICollectionViewDataSource {
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TakeCell", for: indexPath) as! TakeCell
-        
+                
         let groupName = self.takeGroups[collectionView.tag]
         if let takes = self.takeGroupsDict[groupName] {
             let sortedTakes = sortTakes(takes)
             let take = sortedTakes[indexPath.item]
             cell.uiTakeName.text = take.name!
+            
+            
+            if take.chosen! == true {
+                cell.uiFXView.backgroundColor = UIColor.green.withAlphaComponent(0.5)
+            } else {
+                cell.uiFXView.backgroundColor = UIColor.clear
+            }
             
             // http://lightstage.activision.com/thumb_images/2017_09_29_J_BERTI/237571/Shot_0696/2017_09_29_J_BERTI_Shot_0696_DX08_256.jpg
             let basePath = "http://lightstage.activision.com/thumb_images"
@@ -138,7 +201,7 @@ extension ProjectViewController: UICollectionViewDataSource {
             takeIds[take.id!] = take
         }
         
-        for key in takeIds.keys.sorted() {
+        for key in takeIds.keys.sorted().reversed() {
             output.append(takeIds[key]!)
         }
         
@@ -146,22 +209,34 @@ extension ProjectViewController: UICollectionViewDataSource {
     }
 }
 
+
 extension ProjectViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let groupName = self.takeGroups[collectionView.tag]
         if let takes = self.takeGroupsDict[groupName] {
             let thumbNails = getTakesThumbNailPaths(takes: takes)
             var takeNames:[String] = [String]()
+            var takeBested:[Bool] = [Bool]()
+            var takeIds:[Int] = [Int]()
+            
             for take in takes {
                 takeNames.append(take.name!)
+                takeBested.append(take.chosen!)
+                takeIds.append(take.id!)
             }
-                        
+            
+            let cell = collectionView.cellForItem(at: indexPath) as! TakeCell
+            
             let imageViewController = ImageViewController()
+            imageViewController.projectViewController = self
             imageViewController.modalTransitionStyle = UIModalTransitionStyle.crossDissolve
             imageViewController.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
-            imageViewController.thumbNailPaths = thumbNails
-            imageViewController.takeNames = takeNames
+            imageViewController.thumbNailPaths = thumbNails?.reversed()
+            imageViewController.takeNames = takeNames.reversed()
+            imageViewController.takeBested = takeBested.reversed()
+            imageViewController.takeIds = takeIds.reversed()
             imageViewController.takeIndex = indexPath.item
+            imageViewController.takeCell = cell
             present(imageViewController, animated: false, completion: nil)
         }
     }
@@ -198,15 +273,36 @@ extension ProjectViewController: UITableViewDelegate {
         guard let takesGroupCell = cell as? TakeGroupCell else { return }
         storedOffsets[indexPath.row] = takesGroupCell.collectionViewOffset
     }
+    
+    
 }
 
 extension ProjectViewController: DataBaseTakesProtocol {
     func takesInfoRetrieved(takes: [Int:Take]) {
         self.takes = takes
         groupTakes(takes)
-        self.uiTakesTable.reloadData()
         
+        let contentOffset = uiTakesTable.contentOffset
+        
+        if self.firstTime == false {
+            let indexPath = IndexPath(row: 0, section: 0)
+            uiTakesTable.scrollToRow(at: indexPath, at: .top, animated: false)
+        }
+        
+        uiTakesTable.reloadData()
+        uiTakesTable.layoutIfNeeded()
+        
+        if self.firstTime == false {
+            uiTakesTable.setContentOffset(contentOffset, animated: false)
+        }
+        
+        self.firstTime = false
+
         animateOut()
+    }
+    
+    func takeBestedStatusSet() {
+        // do nothing here
     }
     
     /**

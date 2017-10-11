@@ -8,13 +8,22 @@
 
 import UIKit
 
+
 class ImageViewController: UIViewController {
     
     var thumbNailPaths:[String]?
     var takeNames:[String]?
+    var takeBested:[Bool]?
+    var takeIds:[Int]?
     var takeIndex:Int = 0
     var image:UIImage?
     var takeName:String = "No Name"
+    var bested:Bool = false
+    var takeCell:TakeCell?
+    
+    let takesModel = DataBaseTakesModel()
+    
+    var projectViewController:ProjectViewController?
     
     let uiFxView:UIVisualEffectView = {
         let w = UIVisualEffectView()
@@ -71,12 +80,10 @@ class ImageViewController: UIViewController {
         return w
     }()
     
-    let uiNameLabel:UILabel = {
-        let w = UILabel()
-        
-        w.text = "Hello Sven"
-        w.textAlignment = NSTextAlignment.center
-        w.textColor = UIColor.darkGray
+
+    let uiNameButton:UIButton = {
+        let w = UIButton()
+        w.titleLabel?.textColor = UIColor.black
         
         w.translatesAutoresizingMaskIntoConstraints = false
         return w
@@ -84,6 +91,8 @@ class ImageViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        takesModel.delegate = self
         
         self.view.backgroundColor = .clear
         
@@ -100,9 +109,13 @@ class ImageViewController: UIViewController {
             takeName = takeNames[takeIndex]
         }
         
+        if let takeBested = takeBested {
+            bested = takeBested[takeIndex]
+        }
+        
         setupUI()
     }
-
+    
     func setupUI() {
         let scalefactor:CGFloat = 0.9
         
@@ -124,13 +137,20 @@ class ImageViewController: UIViewController {
         uiNameFxView.bottomAnchor.constraint(equalTo: uiImageView.bottomAnchor, constant: 0).isActive = true
         uiNameFxView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: scalefactor*0.89).isActive = true
         uiNameFxView.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        if bested == true {
+            uiNameFxView.backgroundColor = UIColor.green.withAlphaComponent(0.5)
+        } else {
+            uiNameFxView.backgroundColor = UIColor.clear
+        }
         
-        view.addSubview(uiNameLabel)
-        uiNameLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        uiNameLabel.bottomAnchor.constraint(equalTo: uiImageView.bottomAnchor).isActive = true
-        uiNameLabel.widthAnchor.constraint(equalTo: uiNameFxView.widthAnchor, multiplier: 1.0).isActive = true
-        uiNameLabel.heightAnchor.constraint(equalTo: uiNameFxView.heightAnchor, multiplier: 1.0).isActive = true
-        uiNameLabel.text = takeName
+        view.addSubview(uiNameButton)
+        uiNameButton.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        uiNameButton.bottomAnchor.constraint(equalTo: uiImageView.bottomAnchor).isActive = true
+        uiNameButton.widthAnchor.constraint(equalTo: uiNameFxView.widthAnchor, multiplier: 1.0).isActive = true
+        uiNameButton.heightAnchor.constraint(equalTo: uiNameFxView.heightAnchor, multiplier: 1.0).isActive = true
+        uiNameButton.setTitle(takeName, for: .normal)
+        uiNameButton.setTitleColor(UIColor.darkGray, for: .normal)
+        uiNameButton.addTarget(self, action: #selector(changeBestedStatus), for: .touchUpInside)
         
         view.addSubview(uiButtonPrev)
         uiButtonPrev.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
@@ -154,6 +174,30 @@ class ImageViewController: UIViewController {
         uiDismissButton.addTarget(self, action: #selector(dismissView), for: .touchUpInside)
         
         uiSetupButtons()
+    }
+    
+    @objc func changeBestedStatus() {
+        if let takeBested = takeBested {
+            let bested = takeBested[takeIndex]
+            self.takeBested![takeIndex] = !bested
+            
+            if let takeIds = self.takeIds {
+                takesModel.setBestedStatus(forTake: takeIds[takeIndex], newStatus: self.takeBested![takeIndex])
+                self.projectViewController?.updateBestedStatus(takeIds[takeIndex], self.takeBested![takeIndex])
+            }
+            
+            if self.takeBested![takeIndex] == true {
+                uiNameFxView.backgroundColor = UIColor.green.withAlphaComponent(0.5)
+                if let takeCell = takeCell {
+                    takeCell.uiFXView.backgroundColor = UIColor.green.withAlphaComponent(0.5)
+                }
+            } else {
+                uiNameFxView.backgroundColor = UIColor.clear
+                if let takeCell = takeCell {
+                    takeCell.uiFXView.backgroundColor = UIColor.clear
+                }
+            }
+        }
     }
     
     func uiSetupButtons() {
@@ -180,9 +224,17 @@ class ImageViewController: UIViewController {
         }
         
         if let takeNames = takeNames {
-            uiNameLabel.text = takeNames[takeIndex]
+            uiNameButton.setTitle(takeNames[takeIndex], for: .normal)
         }
         
+        if let takeBested = takeBested {
+            let curBested = takeBested[takeIndex]
+            if curBested == true {
+                uiNameFxView.backgroundColor = UIColor.green.withAlphaComponent(0.5)
+            } else {
+                uiNameFxView.backgroundColor = UIColor.clear
+            }
+        }
     }
     
     @objc func getImagePrev() {
@@ -211,6 +263,17 @@ class ImageViewController: UIViewController {
         }
     }
 }
+
+extension ImageViewController: DataBaseTakesProtocol {
+    func takesInfoRetrieved(takes: [Int:Take]) {
+        // do nothing here
+    }
+    
+    func takeBestedStatusSet() {
+        // do nothing here
+    }
+}
+
 
 
 

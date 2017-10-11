@@ -241,6 +241,7 @@
                                                                             <subviews>
                                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EEM-ZT-VgX">
                                                                                     <rect key="frame" x="0.0" y="0.0" width="240" height="30"/>
+                                                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                                                     <nil key="textColor"/>
                                                                                     <nil key="highlightedColor"/>
@@ -253,6 +254,7 @@
                                                                                 <constraint firstAttribute="trailing" secondItem="EEM-ZT-VgX" secondAttribute="trailing" id="LH0-P1-JgU"/>
                                                                             </constraints>
                                                                         </view>
+                                                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                                         <constraints>
                                                                             <constraint firstAttribute="height" constant="30" id="sIv-6a-xlI"/>
                                                                         </constraints>
@@ -271,6 +273,7 @@
                                                                 <constraint firstAttribute="bottom" secondItem="OTr-Qr-9qh" secondAttribute="bottom" id="rPQ-fQ-jEP"/>
                                                             </constraints>
                                                             <connections>
+                                                                <outlet property="uiFXView" destination="OTr-Qr-9qh" id="Hmg-Ed-yU3"/>
                                                                 <outlet property="uiTakeName" destination="EEM-ZT-VgX" id="wXf-a2-0si"/>
                                                                 <outlet property="uiTakeThumbNail" destination="zeV-OT-9qH" id="lJA-Qg-xFn"/>
                                                             </connections>
@@ -310,6 +313,12 @@
                                 <action selector="uiReturnButtonPressed:" destination="rI1-JS-eAn" id="WlI-ky-wtx"/>
                             </connections>
                         </barButtonItem>
+                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="RQK-ST-O4j">
+                            <color key="tintColor" red="0.91372549020000005" green="0.91372549020000005" blue="0.91372549020000005" alpha="1" colorSpace="calibratedRGB"/>
+                            <connections>
+                                <action selector="uiRefreshButtonPressed:" destination="rI1-JS-eAn" id="iCT-KM-NJ8"/>
+                            </connections>
+                        </barButtonItem>
                     </navigationItem>
                     <connections>
                         <outlet property="uiPopUpView" destination="aCq-lu-9eM" id="XKT-dt-BKL"/>
@@ -340,7 +349,7 @@
                     <viewLayoutGuide key="safeArea" id="Xsq-AY-w0v"/>
                 </view>
             </objects>
-            <point key="canvasLocation" x="1525" y="41"/>
+            <point key="canvasLocation" x="1524.609375" y="40.849194729136158"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="97p-fU-arn">

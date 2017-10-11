@@ -21,7 +21,6 @@ class Project: NSObject {
         let notDefined = "Not defined"
         return "[Project] \(name ?? notDefined)[\(id ?? -1)] = Studio: \(studio ?? notDefined), Path: \(path ?? notDefined)"
     }
-    
 }
 
 class Take: NSObject {
@@ -42,6 +41,7 @@ protocol DataBaseProjectsModelProtocol: class {
 
 protocol DataBaseTakesProtocol: class {
     func takesInfoRetrieved(takes: [Int:Take])
+    func takeBestedStatusSet()
 }
 
 class DataBaseTakesModel: NSObject, URLSessionDataDelegate {
@@ -49,6 +49,35 @@ class DataBaseTakesModel: NSObject, URLSessionDataDelegate {
     
     var data = Data()
     var startTime:CFAbsoluteTime?
+    
+    func setBestedStatus(forTake takeId:Int, newStatus status:Bool) {
+        startTime = CFAbsoluteTimeGetCurrent()
+        let basePath = "http://lightstage.activision.com/test/ios_set_take_bested_status.php?take_id=\(takeId)"
+        var value="false"
+        if status == true {
+            value="true"
+        }
+        let urlPath = "\(basePath)&value=\(value)"
+        print ("calling \(urlPath)")
+        let url:URL = URL(string: urlPath)!
+        let session = URLSession(configuration: URLSessionConfiguration.default)
+        let task = session.dataTask(with: url) {
+            (data, response, error) in
+            if error != nil {
+                print (error!.localizedDescription)
+            } else {
+                self.parseBestedReturn()
+            }
+        }
+        
+        task.resume()
+    }
+    
+    func parseBestedReturn() {
+        DispatchQueue.main.async {
+            self.delegate.takeBestedStatusSet()
+        }
+    }
     
     func getTakesForProjectID(_ id: Int) {
         startTime = CFAbsoluteTimeGetCurrent()
@@ -74,7 +103,7 @@ class DataBaseTakesModel: NSObject, URLSessionDataDelegate {
         
         if let startTime = self.startTime {
             let timeElapsed = Double(CFAbsoluteTimeGetCurrent() - startTime)
-            print ("Got Projects Info in: \(timeElapsed) seconds!")
+            print ("Got Takes Info in: \(timeElapsed) seconds!")
         }
         
         do {
@@ -112,7 +141,11 @@ class DataBaseTakesModel: NSObject, URLSessionDataDelegate {
                 take.flashFrame = Int(fFrame)
             }
             if let chosen = element["chosen"] as? String {
-                take.chosen = Bool(chosen)
+                if chosen == "0" {
+                    take.chosen = false
+                } else {
+                    take.chosen = true
+                }
             }
             if let path = element["filename"] as? String {
                 take.thumbFileName = path
@@ -172,6 +205,7 @@ class DataBaseProjectsModel: NSObject, URLSessionDataDelegate {
         var element = NSDictionary()
         var projects: [Int:Project] = [Int:Project]()
         
+        
         for i in 0..<jsonResults.count {
             element = jsonResults[i] as! NSDictionary
             
@@ -193,12 +227,10 @@ class DataBaseProjectsModel: NSObject, URLSessionDataDelegate {
             }
             if let takeId = element["neutral_take_id"] as? String {
                 neutralTake.id = Int(takeId)
-            }            
-            if let thumbPath = element["thumb_filename"] as? String {
-                neutralTake.thumbFileName = thumbPath
             }
             if let canonShot = element["neutral_take_canon_shot"] as? String {
-                neutralTake.canonShot = canonShot
+                let canonString = String(format: "%04d", Int(canonShot)!)
+                neutralTake.canonShot = canonString
             }
             
             projects[project.id!] = project

@@ -8,6 +8,30 @@
 
 import UIKit
 
+class ProjectTableCell: UITableViewCell {
+    
+    @IBOutlet weak var uiProjectName: UILabel!
+    @IBOutlet weak var uiBackgroundView: UIView!
+    @IBOutlet weak var uiThumbNail: UIImageView!
+    @IBOutlet weak var uiStudioName: UILabel!
+    
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        // Initialization code
+    }
+    
+    func configure() {
+        self.contentView.backgroundColor = UIColor.darkGray
+        uiBackgroundView.backgroundColor = UIColor.white
+        uiBackgroundView.layer.cornerRadius = 10
+        
+        uiBackgroundView.layer.shadowColor = UIColor.black.withAlphaComponent(0.25).cgColor
+        uiBackgroundView.layer.shadowOffset = CGSize(width: 6, height: 6)
+        uiBackgroundView.layer.shadowOpacity = 0.8
+    }
+    
+}
+
 class TakeGroupCell: UITableViewCell {
     @IBOutlet weak var collectionView: UICollectionView!
     
@@ -34,4 +58,6 @@ class TakeCell: UICollectionViewCell {
     
     @IBOutlet weak var uiTakeThumbNail: UIImageView!
     @IBOutlet weak var uiTakeName: UILabel!
+    @IBOutlet weak var uiFXView: UIVisualEffectView!
+    
 }

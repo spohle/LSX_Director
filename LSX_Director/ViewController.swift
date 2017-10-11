@@ -19,7 +19,7 @@ class ViewController: UIViewController {
     var projects = [Int:Project]()
     let thumbCache = NSCache<NSString, UIImage>()
     let dataBaseModel = DataBaseProjectsModel()
-    let indicator = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.whiteLarge)
+//    let indicator = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.whiteLarge)
     
     var lastContentOffset = CGFloat(0)
     var scrollDirection = ScrollDirection.none
@@ -28,6 +28,8 @@ class ViewController: UIViewController {
     @IBOutlet weak var uiProjectsTable: UITableView!
     @IBOutlet var uiPopUpView: UIView!
     @IBOutlet weak var uiVisualEffectsView: UIVisualEffectView!
+    
+    var indicator = NVActivityIndicatorView(frame: CGRect())
     
     
     @IBAction func uiReloadPressed(_ sender: Any) {
@@ -67,6 +69,28 @@ class ViewController: UIViewController {
             self.uiPopUpView.alpha = 1.0
             self.uiPopUpView.transform = CGAffineTransform.identity
         }
+        
+        var types = [NVActivityIndicatorType]()
+        types.append(contentsOf: [.blank, .ballPulse, .ballGridPulse, .ballClipRotate,
+                                  .squareSpin, .ballClipRotatePulse, .ballClipRotateMultiple,
+                                  .ballPulseRise, .ballRotate, .cubeTransition, .ballZigZag,
+                                  .ballZigZagDeflect, .ballTrianglePath, .ballScale, .lineScale,
+                                  .lineScaleParty, .ballScaleMultiple, .ballPulseSync, .ballBeat,
+                                  .lineScalePulseOut, .lineScalePulseOutRapid, .ballScaleRipple,
+                                  .ballScaleRippleMultiple, .ballSpinFadeLoader, .lineSpinFadeLoader,
+                                  .triangleSkewSpin, .pacman, .ballGridBeat, .semiCircleSpin,
+                                  .ballRotateChase, .orbit, .audioEqualizer])
+        
+        
+        let size = CGSize(width: uiPopUpView.frame.height/4, height: uiPopUpView.frame.height/4)
+        let origin = CGPoint(x: uiPopUpView.frame.origin.x + (uiPopUpView.frame.size.width/2) - size.width/2.0, y: (uiPopUpView.frame.origin.y + 100))
+        let frame = CGRect(origin: origin, size: size)
+        indicator = NVActivityIndicatorView(frame: frame)
+        
+        let randomNumber = Int(arc4random_uniform(UInt32(types.count)))
+        indicator.type = types[randomNumber]
+        self.view.addSubview(indicator)
+        indicator.startAnimating()
     }
     
     func animateOut() {
@@ -75,6 +99,7 @@ class ViewController: UIViewController {
             self.uiPopUpView.alpha = 0.0
             self.uiPopUpView.transform = CGAffineTransform.init(scaleX: 1.3, y: 1.3)
         }) { (success) in
+            self.indicator.stopAnimating()
             self.uiPopUpView.removeFromSuperview()
         }
         
@@ -159,9 +184,6 @@ extension ViewController: UITableViewDataSource {
             if let image = getThumbImage(project) {
                 cell.uiThumbNail.image = image
             } else {
-//                let height = uiProjectsTable.rowHeight
-//                let width = height / 1.505
-//                cell.uiThumbNail.image = UIImage(color: UIColor.red, size: CGSize(width: width, height: height))
                 cell.uiThumbNail.image = UIImage(named: "ctx")
             }
         }
@@ -175,18 +197,13 @@ extension ViewController: UITableViewDataSource {
         var thumbNailPath:String?
         
         if let projectName = project.name, let take = project.neutralTake {
-            if let path = take.thumbFileName {
-                thumbNailPath = "\(basePath)/\(projectName)/\(path)"
+            if let canonShot = take.canonShot {
+                // http://lightstage.activision.com/thumb_images/2017_09_29_J_BERTI/238851/Shot_1976/2017_09_29_J_BERTI_Shot_1976_DX08_256.jpg
+                let canon = "Shot_\(canonShot)"
+                thumbNailPath = "\(basePath)/\(projectName)/\(take.id!)/\(canon)/\(projectName)_\(canon)_DX08_256.jpg"
                 return getThumbCache(thumbNailPath!, projectName)
             } else {
-                if let canonShot = take.canonShot {
-                    // http://lightstage.activision.com/thumb_images/2017_09_29_J_BERTI/238851/Shot_1976/2017_09_29_J_BERTI_Shot_1976_DX08_256.jpg
-                    let canon = "Shot_\(canonShot)"
-                    thumbNailPath = "\(basePath)/\(projectName)/\(take)/(canon)/\(projectName)_\(canon)_DX08_256.jpg"
-                    return getThumbCache(thumbNailPath!, projectName)
-                } else {
-                    return nil
-                }
+                return nil
             }
         } else {
             print ("Either ProjectName or neutralTake wasn't there")
