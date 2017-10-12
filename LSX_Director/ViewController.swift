@@ -19,7 +19,6 @@ class ViewController: UIViewController {
     var projects = [Int:Project]()
     let thumbCache = NSCache<NSString, UIImage>()
     let dataBaseModel = DataBaseProjectsModel()
-//    let indicator = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.whiteLarge)
     
     var lastContentOffset = CGFloat(0)
     var scrollDirection = ScrollDirection.none

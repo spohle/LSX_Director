@@ -26,6 +26,8 @@ class ProjectViewController: UIViewController {
     var autoRefresh:Bool = true
     var dismissed:Bool = false
     
+    var imageViewController:ImageViewController = ImageViewController()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -219,7 +221,8 @@ extension ProjectViewController: UICollectionViewDelegate {
             
             let cell = collectionView.cellForItem(at: indexPath) as! TakeCell
             
-            let imageViewController = ImageViewController()
+            imageViewController = ImageViewController()
+            
             imageViewController.projectViewController = self
             imageViewController.modalTransitionStyle = UIModalTransitionStyle.crossDissolve
             imageViewController.modalPresentationStyle = UIModalPresentationStyle.overCurrentContext
