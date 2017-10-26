@@ -17,6 +17,8 @@ class ProjectViewController: UIViewController {
     let thumbCache = NSCache<NSString, UIImage>()
     var storedOffsets = [Int: CGFloat]()
     
+    let refreshRate = 5
+    
     @IBOutlet weak var uiTakesTable: UITableView!
     @IBOutlet var uiPopUpView: UIView!
     @IBOutlet weak var uiAutoRefreshButton: UIBarButtonItem!
@@ -278,27 +280,32 @@ extension ProjectViewController: DataBaseTakesProtocol {
         self.takes = takes
         groupTakes(takes)
         
+        let rowCount = self.takeGroupsDict.keys.count
         let contentOffset = uiTakesTable.contentOffset
         
-        if self.firstTime == false {
-            let indexPath = IndexPath(row: 0, section: 0)
-            uiTakesTable.scrollToRow(at: indexPath, at: .top, animated: false)
+        if rowCount > 0 {
+            if self.firstTime == false {
+                let indexPath = IndexPath(row: 0, section: 0)
+                uiTakesTable.scrollToRow(at: indexPath, at: .top, animated: false)
+            }
         }
         
         uiTakesTable.reloadData()
         uiTakesTable.layoutIfNeeded()
         
-        if self.firstTime == false {
-            uiTakesTable.setContentOffset(contentOffset, animated: false)
+        if rowCount > 0 {
+            if self.firstTime == false {
+                uiTakesTable.setContentOffset(contentOffset, animated: false)
+            }
+            
+            self.firstTime = false
         }
-        
-        self.firstTime = false
 
         animateOut()
         
         // start timer and recall the data
         if autoRefresh == true {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 10.0, execute: {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: {
                 self.updateData()
             })
         }
@@ -314,6 +321,8 @@ extension ProjectViewController: DataBaseTakesProtocol {
     */
     func groupTakes(_ takes: [Int:Take]) {
         var groups = [String:[Take]]()
+        
+        self.takeGroups.removeAll()
         
         for takeId in takes.keys.sorted() {
             if let take = takes[takeId] {
@@ -335,6 +344,7 @@ extension ProjectViewController: DataBaseTakesProtocol {
             }
         }
         
+        self.takeGroupsDict.removeAll()
         self.takeGroupsDict = groups
     }
 }
