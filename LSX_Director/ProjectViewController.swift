@@ -280,27 +280,13 @@ extension ProjectViewController: DataBaseTakesProtocol {
         self.takes = takes
         groupTakes(takes)
         
-        let rowCount = self.takeGroupsDict.keys.count
-        let contentOffset = uiTakesTable.contentOffset
-        
-        if rowCount > 0 {
-            if self.firstTime == false {
-                let indexPath = IndexPath(row: 0, section: 0)
-                uiTakesTable.scrollToRow(at: indexPath, at: .top, animated: false)
-            }
-        }
-        
         uiTakesTable.reloadData()
         uiTakesTable.layoutIfNeeded()
         
-        if rowCount > 0 {
-            if self.firstTime == false {
-                uiTakesTable.setContentOffset(contentOffset, animated: false)
-            }
-            
-            self.firstTime = false
-        }
-
+        // scroll to the bottom of the table
+        let indexPath = IndexPath(row: self.takeGroupsDict.keys.count-1, section: 0)
+        self.uiTakesTable.scrollToRow(at: indexPath, at: .bottom, animated: false)
+        
         animateOut()
         
         // start timer and recall the data
@@ -315,10 +301,6 @@ extension ProjectViewController: DataBaseTakesProtocol {
         // do nothing here
     }
     
-    /**
-         Takes a dict of takes and splits them into their groupings
-         @param takes the dictionary with the takes in
-    */
     func groupTakes(_ takes: [Int:Take]) {
         var groups = [String:[Take]]()
         
