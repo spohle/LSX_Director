@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13526" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="mzD-RD-vtt">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="mzD-RD-vtt">
     <device id="ipad12_9" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13524"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="Navigation items with more than one left or right bar item" minToolsVersion="7.0"/>
@@ -73,7 +73,7 @@
                                                                         <constraint firstAttribute="width" constant="365" id="YwF-4r-xKa"/>
                                                                     </constraints>
                                                                     <fontDescription key="fontDescription" type="boldSystem" pointSize="23"/>
-                                                                    <color key="textColor" red="1" green="0.37438111519326955" blue="0.3454241071428571" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                                    <color key="textColor" white="0.10000000000000001" alpha="1" colorSpace="calibratedWhite"/>
                                                                     <nil key="highlightedColor"/>
                                                                 </label>
                                                             </subviews>
@@ -134,7 +134,7 @@
                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             </view>
                                             <vibrancyEffect>
-                                                <blurEffect style="light"/>
+                                                <blurEffect style="dark"/>
                                             </vibrancyEffect>
                                         </visualEffectView>
                                     </subviews>
@@ -184,7 +184,7 @@
                             <nil key="highlightedColor"/>
                         </label>
                     </subviews>
-                    <color key="backgroundColor" red="1" green="0.13935004340277779" blue="0.15369420934606481" alpha="0.5" colorSpace="calibratedRGB"/>
+                    <color key="backgroundColor" white="0.10000000000000001" alpha="1" colorSpace="calibratedWhite"/>
                     <constraints>
                         <constraint firstItem="oIv-jp-cxj" firstAttribute="trailing" secondItem="5hp-C1-vw7" secondAttribute="trailing" id="1BJ-Mo-k2p"/>
                         <constraint firstItem="5hp-C1-vw7" firstAttribute="top" secondItem="oIv-jp-cxj" secondAttribute="top" constant="10" id="Lg4-Ku-VeN"/>
@@ -332,6 +332,7 @@
                     <connections>
                         <outlet property="uiAutoRefreshButton" destination="1eD-bT-0Th" id="k9y-aw-DKQ"/>
                         <outlet property="uiPopUpView" destination="aCq-lu-9eM" id="XKT-dt-BKL"/>
+                        <outlet property="uiProjectName" destination="8Rs-bv-Anq" id="bHe-wu-Z2q"/>
                         <outlet property="uiTakesTable" destination="au0-rA-Jlf" id="lAZ-FD-yAN"/>
                     </connections>
                 </viewController>
@@ -369,7 +370,7 @@
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="EBF-5i-SPJ">
                         <rect key="frame" x="0.0" y="20" width="1024" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
-                        <color key="barTintColor" red="1" green="0.3743811152" blue="0.34542410709999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="barTintColor" white="0.10000000000000001" alpha="1" colorSpace="calibratedWhite"/>
                         <textAttributes key="titleTextAttributes">
                             <color key="textColor" white="0.9006696428571429" alpha="1" colorSpace="calibratedWhite"/>
                         </textAttributes>
@@ -391,7 +392,7 @@
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="w99-gP-J2T">
                         <rect key="frame" x="0.0" y="20" width="1024" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
-                        <color key="barTintColor" red="1" green="0.3743811152" blue="0.34542410709999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="barTintColor" white="0.10000000000000001" alpha="1" colorSpace="calibratedWhite"/>
                         <textAttributes key="titleTextAttributes">
                             <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         </textAttributes>

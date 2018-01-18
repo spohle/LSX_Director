@@ -43,7 +43,7 @@ class ViewController: UIViewController {
         uiVisualEffectsView.effect = nil
         uiVisualEffectsView.isUserInteractionEnabled = false
         
-        uiPopUpView.layer.cornerRadius = 15
+        uiPopUpView.layer.cornerRadius = 5
         uiPopUpView.layer.masksToBounds = false
         
         uiProjectsTable.dataSource = self

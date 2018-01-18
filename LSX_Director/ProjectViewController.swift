@@ -22,16 +22,23 @@ class ProjectViewController: UIViewController {
     @IBOutlet weak var uiTakesTable: UITableView!
     @IBOutlet var uiPopUpView: UIView!
     @IBOutlet weak var uiAutoRefreshButton: UIBarButtonItem!
+    @IBOutlet weak var uiProjectName: UINavigationItem!
     
     let takesModel = DataBaseTakesModel()
     var firstTime:Bool = true
-    var autoRefresh:Bool = true
+    var autoRefresh:Bool = false
     var dismissed:Bool = false
+    
+    var projectName:String = ""
     
     var imageViewController:ImageViewController = ImageViewController()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.projectName = uiProjectName.title!
+        
+        uiAutoRefreshButton.title = "Manual Refresh"
         
         self.animateIn()
         
@@ -278,14 +285,19 @@ extension ProjectViewController: UITableViewDelegate {
 extension ProjectViewController: DataBaseTakesProtocol {
     func takesInfoRetrieved(takes: [Int:Take]) {
         self.takes = takes
+        
+        uiProjectName.title = self.projectName + "   [Takes: " + String(takes.count) + "]"
+        
         groupTakes(takes)
         
         uiTakesTable.reloadData()
         uiTakesTable.layoutIfNeeded()
         
-        // scroll to the bottom of the table
-        let indexPath = IndexPath(row: self.takeGroupsDict.keys.count-1, section: 0)
-        self.uiTakesTable.scrollToRow(at: indexPath, at: .bottom, animated: false)
+        if takes.count > 0 {
+            // scroll to the bottom of the table
+            let indexPath = IndexPath(row: self.takeGroupsDict.keys.count-1, section: 0)
+            self.uiTakesTable.scrollToRow(at: indexPath, at: .bottom, animated: false)
+        }
         
         animateOut()
         

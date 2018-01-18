@@ -251,7 +251,7 @@ class ImageViewController: UIViewController {
     
     @objc func dismissView() {
         self.projectViewController?.dismissed = false
-        self.projectViewController?.updateData()
+//        self.projectViewController?.updateData()
         dismiss(animated: false, completion: nil)
     }
     
